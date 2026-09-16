@@ -113,10 +113,26 @@
     };
   }
 
+  // 直近limit件の記録を古い順に並べ、最新から数えた相対ラベルを付ける。
+  // 呼び出し側で有効な記録(amount.ok && date.ok)に絞ってから渡すこと。
+  function recentRecordsSeries(records, limit) {
+    var sorted = records.slice().sort(function (a, b) {
+      return a.date.date.getTime() - b.date.date.getTime();
+    });
+    var recent = limit ? sorted.slice(-limit) : sorted;
+    var n = recent.length;
+    return recent.map(function (r, i) {
+      var distanceFromLatest = n - 1 - i;
+      var label = distanceFromLatest === 0 ? '最新' : (distanceFromLatest + 1) + '回前';
+      return { label: label, pnl: r.amount.pnl };
+    });
+  }
+
   return {
     periodRange: periodRange,
     filterValidRecords: filterValidRecords,
     filterByPeriod: filterByPeriod,
-    summarize: summarize
+    summarize: summarize,
+    recentRecordsSeries: recentRecordsSeries
   };
 });

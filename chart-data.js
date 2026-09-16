@@ -45,6 +45,37 @@
     };
   }
 
+  function buildRecentRecordsChartConfig(series) {
+    return {
+      type: 'bar',
+      data: {
+        labels: series.map(function (d) { return d.label; }),
+        datasets: [{
+          data: series.map(function (d) { return d.pnl; }),
+          backgroundColor: series.map(function (d) { return d.pnl >= 0 ? COLOR_PLUS : COLOR_MINUS; })
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true },
+          x: {
+            ticks: {
+              callback: function (value, index) {
+                var total = series.length;
+                var distanceFromLatest = total - 1 - index;
+                if (distanceFromLatest === 0 || (distanceFromLatest + 1) % 5 === 0) {
+                  return series[index].label;
+                }
+                return '';
+              }
+            }
+          }
+        }
+      }
+    };
+  }
+
   function buildCategoryChartConfig(byCategory) {
     return {
       type: 'bar',
@@ -64,6 +95,7 @@
 
   return {
     buildDailyPnlChartConfig: buildDailyPnlChartConfig,
+    buildRecentRecordsChartConfig: buildRecentRecordsChartConfig,
     buildCategoryChartConfig: buildCategoryChartConfig
   };
 });

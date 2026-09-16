@@ -1,6 +1,8 @@
 (function () {
   'use strict';
 
+  var RECENT_RECORDS_LIMIT = 20;
+
   function main() {
     var els = {
       errorBanner: document.getElementById('error-banner'),
@@ -8,6 +10,8 @@
       main: document.getElementById('app-main'),
       periodFilter: document.getElementById('period-filter'),
       summary: document.getElementById('summary-tiles'),
+      dailyChartTitle: document.getElementById('daily-chart-title'),
+      genreSelect: document.getElementById('genre-select'),
       dailyCanvas: document.getElementById('daily-chart'),
       categoryCanvas: document.getElementById('category-chart'),
       categoryList: document.getElementById('category-list'),
@@ -17,6 +21,7 @@
     var state = {
       records: [],
       periodKey: 'all',
+      genre: 'all',
       dailyChart: null,
       categoryChart: null
     };
@@ -49,7 +54,22 @@
       var visibleRecords = recordsForPeriod(state.records, state.periodKey);
 
       GD.renderSummary(els.summary, summary);
-      state.dailyChart = GD.renderDailyChart(els.dailyCanvas, summary.dailyPnl, state.dailyChart);
+
+      var dailyChartData;
+      var dailyMetric;
+      if (state.genre === 'all') {
+        dailyChartData = summary.dailyPnl;
+        dailyMetric = 'daily';
+        els.dailyChartTitle.textContent = '日別推移';
+      } else {
+        var periodValidRecords = GD.filterByPeriod(GD.filterValidRecords(state.records), period);
+        var genreRecords = periodValidRecords.filter(function (r) { return r.category === state.genre; });
+        dailyChartData = GD.recentRecordsSeries(genreRecords, RECENT_RECORDS_LIMIT);
+        dailyMetric = 'recent';
+        els.dailyChartTitle.textContent = state.genre + ' 直近' + dailyChartData.length + '回';
+      }
+      state.dailyChart = GD.renderDailyChart(els.dailyCanvas, dailyChartData, state.dailyChart, dailyMetric);
+
       state.categoryChart = GD.renderCategory(els.categoryCanvas, els.categoryList, summary.byCategory, state.categoryChart);
       GD.renderRecordList(els.recordList, visibleRecords);
     }
@@ -64,6 +84,26 @@
       rerender();
     }
 
+    function onGenreChange() {
+      state.genre = els.genreSelect.value;
+      rerender();
+    }
+
+    function populateGenreOptions(records) {
+      var counts = {};
+      records.forEach(function (r) {
+        counts[r.category] = (counts[r.category] || 0) + 1;
+      });
+      Object.keys(counts)
+        .sort(function (a, b) { return counts[b] - counts[a]; })
+        .forEach(function (category) {
+          var opt = document.createElement('option');
+          opt.value = category;
+          opt.textContent = category;
+          els.genreSelect.appendChild(opt);
+        });
+    }
+
     function fetchCsv(url) {
       return fetch(url).then(function (res) {
         if (!res.ok) throw new Error('HTTPエラー: ' + res.status);
@@ -72,6 +112,7 @@
     }
 
     els.periodFilter.addEventListener('click', onPeriodClick);
+    els.genreSelect.addEventListener('change', onGenreChange);
 
     if (!window.GD_CONFIG || !GD_CONFIG.CSV_URL) {
       showError(
@@ -84,6 +125,7 @@
       .then(function (text) {
         var rows = GD.parseCsv(text).slice(1);
         state.records = GD.normalizeRecords(rows);
+        populateGenreOptions(state.records);
         rerender();
       })
       .catch(function (err) {

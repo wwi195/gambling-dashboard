@@ -88,9 +88,11 @@
     }
   }
 
-  function renderDailyChart(canvas, dailyPnl, prevChart) {
+  function renderDailyChart(canvas, data, prevChart, metric) {
     if (prevChart) prevChart.destroy();
-    var config = GD.buildDailyPnlChartConfig(dailyPnl);
+    var config = metric === 'recent'
+      ? GD.buildRecentRecordsChartConfig(data)
+      : GD.buildDailyPnlChartConfig(data);
     return new Chart(canvas.getContext('2d'), config);
   }
 

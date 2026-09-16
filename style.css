@@ -124,6 +124,28 @@ body {
   margin: 0 0 8px;
 }
 
+.chart-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chart-section-header h2 {
+  margin: 0 0 8px;
+}
+
+#genre-select {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card-bg);
+  color: var(--text);
+  font-size: 12px;
+  padding: 4px 8px;
+  margin-bottom: 8px;
+}
+
 .chart-section canvas {
   max-height: 260px;
 }

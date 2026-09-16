@@ -103,3 +103,44 @@ T.test('summarize: 件数0件ならwinRate/avgWin/avgLoss/maxWin/maxLossはnull'
   T.assertEqual(s.maxLoss, null);
   T.assertEqual(s.byCategory, []);
 });
+
+T.test('recentRecordsSeries: 古い順に並べ、最新から数えたラベルを付ける', function () {
+  var records = [
+    record('パチンコ', 100, true, new Date(2026, 8, 1)),
+    record('パチンコ', -50, true, new Date(2026, 8, 2)),
+    record('パチンコ', 200, true, new Date(2026, 8, 3)),
+    record('パチンコ', -30, true, new Date(2026, 8, 4))
+  ];
+  var series = GD.recentRecordsSeries(records, 3);
+  T.assertEqual(series, [
+    { label: '3回前', pnl: -50 },
+    { label: '2回前', pnl: 200 },
+    { label: '最新', pnl: -30 }
+  ]);
+});
+
+T.test('recentRecordsSeries: limitが件数より多ければ全件を返す', function () {
+  var records = [
+    record('パチンコ', 100, true, new Date(2026, 8, 1)),
+    record('パチンコ', -50, true, new Date(2026, 8, 2))
+  ];
+  var series = GD.recentRecordsSeries(records, 10);
+  T.assertEqual(series, [
+    { label: '2回前', pnl: 100 },
+    { label: '最新', pnl: -50 }
+  ]);
+});
+
+T.test('recentRecordsSeries: 並び順が古い順でなくても内部でソートする', function () {
+  var records = [
+    record('パチンコ', -30, true, new Date(2026, 8, 4)),
+    record('パチンコ', 100, true, new Date(2026, 8, 1)),
+    record('パチンコ', 200, true, new Date(2026, 8, 3)),
+    record('パチンコ', -50, true, new Date(2026, 8, 2))
+  ];
+  var series = GD.recentRecordsSeries(records, 2);
+  T.assertEqual(series, [
+    { label: '2回前', pnl: 200 },
+    { label: '最新', pnl: -30 }
+  ]);
+});

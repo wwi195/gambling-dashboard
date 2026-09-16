@@ -25,7 +25,12 @@
 
   <div class="charts-row">
     <section class="chart-section">
-      <h2>日別推移</h2>
+      <div class="chart-section-header">
+        <h2 id="daily-chart-title">日別推移</h2>
+        <select id="genre-select">
+          <option value="all" selected>全体</option>
+        </select>
+      </div>
       <canvas id="daily-chart"></canvas>
     </section>
 
